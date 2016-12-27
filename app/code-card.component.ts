@@ -15,7 +15,8 @@ import {Component, Input, Output, EventEmitter} from "@angular/core";
 <span class="name turn">{{name}}</span></div>
 
 <div class="map" *ngIf="is_map"
-[ngClass]="{'red': myColorNr==0, 'blue': myColorNr==1, 'grey': myColorNr==2, 'black': myColorNr==3}"
+[ngClass]="{'openedInMap':is_mapOpen, 
+'red': myColorNr==0, 'blue': myColorNr==1, 'grey': myColorNr==2, 'black': myColorNr==3}"
 >
 </div>
 `,
@@ -41,10 +42,13 @@ font-weight: 900;
 border-radius: 2px;
 font-size: 2px;
  display: inline-block;
- width: 20px;
- height: 14px;
- margin: 0 6px 3px 0;
+ width: 21px;
+ height: 12px;
+ margin: 0 5px 5px 0;
  border: 1px solid grey;
+}
+.openedInMap {
+opacity: 0.6;
 }
 .name {
 position: relative;
@@ -55,15 +59,15 @@ position: absolute;
 transform: rotate(180deg);
     -webkit-transform: rotate(180deg);
 top: 46px;
-left: 10px;
+left: 0;
 width: 100%;
 color: grey;
 }
 .red {
-background: red;
+background: orangered;
 }
 .blue {
-background: blue;
+background: dodgerblue;
 color: white;
 }
 .grey {
@@ -77,17 +81,21 @@ color: white;
 })
 export class CodeCardComponent{
 @Input() name:string;
+@Input() myId:number;
 @Input() myColorNr:number;
 @Input() is_map:boolean;
+
 @Output() sendColorNr:EventEmitter<number> = new EventEmitter();
+
 isClicked:boolean = false;
+is_mapOpen:boolean;
 
     showCardColor:boolean = false;
 
     onShowColor() {
         this.showCardColor = true;
         if (!this.isClicked) {
-            this.sendColorNr.emit(this.myColorNr);
+            this.sendColorNr.emit(this.myId);
             this.isClicked = true;
         }
     }
