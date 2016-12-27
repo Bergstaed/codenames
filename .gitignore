@@ -5,7 +5,7 @@ typings
 npm-debug.log
 
 *.js
-!system.config.js
+!systemjs.config.js
 *.js.map
 
 
