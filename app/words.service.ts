@@ -3,6 +3,7 @@ import {Injectable} from "@angular/core";
 
 @Injectable()
 export class WordsService {
+
     getWords(nr:number): Promise<string[]> {
         let arrayAll:string[] = this.getAllNames().split(",");
         this.wordsArray = [];
@@ -10,6 +11,13 @@ export class WordsService {
             this.wordsArray.push(arrayAll[i]);
         }
         return Promise.resolve(this.wordsArray);
+    }
+
+    getNumberOfGames(): Promise<number[]> {
+        let arrayAll:string[] = this.getAllNames().split(",");
+        let anz = Math.floor(arrayAll.length/25);
+        let result:number[] = this.buildArrayOfIncreasingNumbers(anz);
+        return Promise.resolve(result);
     }
 
     getWordsSlowly(nr:number): Promise<string[]> {
@@ -22,24 +30,19 @@ export class WordsService {
 
     getAllNames() :string {
         return "Apfel, Baum, Hannah, Schauspieler, Lautsprecher, Musik," +
-            "Kino,Mac,Thermoskanne,Hochzeit,Weltmeister,Klempner,Schraube," +
-            "Fuß, Röntgen, Speichel, Sandwich, Sand, Licht, Zug, Los Angeles, " +
-            "Angel, Berg, Vieleck, Jacke, Laptop, Punkt, Kopfhörer, Jörg, " +
-            "Pinsel, Ankunft, Buchstabe, Name, Schal, Krankheit, Zahlen, Geld," +
-            "Elefant,Uboot,Wäsche,Seilspringen,Asterix,Uhr,Geldschein,Jesus," +
             "Johannes, YouTube, Beruf, Ente, Kaninchen, König, Dach, Durchsage, " +
             "Geschichte, Musik, Uhr, Hemd, Gras, Lehne, Bushaltestelle, Stuhl, Spielplatz, " +
             "Fisch, Essen, Handy, blau, Auto, Prozent, Wasser, Boden, Keim, Brille," +
-            "Klavier,Glas,Leber,Internet,Igel,Spaziergang,Dolch,Kissen,Boden," +
             "Fuchs, Spieß, Spiel, Spaß, Blatt, Zigarette, Kind, Ball, Birne, Korb, " +
             "Buch, Spannung, Chemie, Larissa, Haare, Perücke, Eis, Nachname, Koffer, " +
             "Lampe, Messer, Mord, Note, Notiz, Schimmel, Schlange, Schaf, Luftballon, " +
             "Nadel, Trommel, Takt, Haus, Australien, Kauf, schnell, nah, Zimmer, Rakete, " +
             "Fenster, Rauch, Team, Rinde, Tanne, Weihnachten, Graffiti, Design, Tour, rot, " +
-            "Gans, Liebe, Welt, Reise, Riese, Nase, Nagel, Finger, Strom, Krug, Saft, Briefe, " +
+            "Gans, Liebe, Welt, Reise, Riese, Nase, Nagel, Finger, Strom, Krug, Saft, Briefe," +
+            "Paul,Jakob," +
             "Welle, USA, Tablette, Geschenk, Schuh, Sattel, Erkundung, Foto, Sprechblase, Luft, " +
             "Aufzug, Akku, Ablage, Linie, Balance, Hilfe, Dreck, Kugel, Schaum, Show, Kamera, " +
-            "Km/h, Wolken, Schnee, Gott, Erbse, Klo, Hund, Wüste, Spule, Spüle, braun, jung, " +
+            "Km/h, Wolken, Schnee, Gott, Erbse, Klo, Hund, Wüste, Spule, Spüle, braun, jung," +
             "gestern, Geschmack, Schmetterling, Schloss, schlau, Dummkopf, Deo, Bart, Schnitt, " +
             "Fall, Jura, Dino, Kabel, Telekom, Pommes, Hülle, Folie, Fell, Mast, Prinz, Schaffner, " +
             "Tür, Schatte, Schornsteinfeger, Glück, Ritter, Wand, Gewinn, Traum, Code, Tüte, Lippe," +
@@ -53,8 +56,28 @@ export class WordsService {
             " Umzug, Henkel, Regal, Insel, Vulkan, Hocker, Figur, Stern, Mond, Flöte, Schildkröte, Wachs, Sturm," +
             "Auge, Brille, Abfalleimer, Not, gelb, Husten, Bonbon, Amerika, Apfel, Süssigkeit, Elbe," +
             "Hamburg, Konzert, Lang Lang, Gold, Stoff,  Tatort, Getränk, Katze, Wald,Rucksack, Laptop," +
-            "Kreide, Bluse, Rohrstock, Trauer, Teppich, Besteck, Kopierer";
+            "Fuß, Röntgen, Speichel, Sandwich, Sand, Licht, Zug, Los Angeles, " +
+            "Angel, Berg, Vieleck, Jacke, Laptop, Punkt, Kopfhörer, Jörg, fleißig,Sattel,Garage,Hilfe," +
+            "Pinsel, Ankunft, Buchstabe, Name, Schal, Krankheit, Zahlen, Geld, Verbot" +
+            "Elefant,Uboot,Wäsche,Seilspringen,Asterix,Uhr,Geldschein,Jesus,Ostern,Kicker,Sack,Gewalt," +
+            "Team,Dusche,See,Eichhörnchen,Bücherei,Lagerfeuer,Dieb,Alkohol,Leseratte," +
+            "Kino,Mac,Thermoskanne,Hochzeit,Weltmeister,Klempner,Schraube,Fusel,Fleck,Jonglieren,Roman," +
+            "Klavier,Glas,Leber,Internet,Igel,Spaziergang,Dolch,Kissen,Boden," +
+            "Google,Harfe,Bier,Detektiv,Tanz,Ritter,Baumhaus,Mauer,Coca Cola,Nikolaus," +
+            "Band,Schwein,Orgel,Müsli,Mikrofon,Anhalter,Reifen,Panne,Halbmond,Gespenst," +
+            "Nebel,Rosenkohl,Brunnen,Korb,Köln,DDR,Fanta,Ernte,Vater,Dick & Doof," +
+            "Kreide, Bluse, Rohrstock, Trauer, Teppich, Besteck, Kopierer," +
+            "Sommer,Hai,Putzfrau,Schokokuss,Gardinen," +
+            "Ende";
 
     }
 
+
+    buildArrayOfIncreasingNumbers(num:number):number[] {
+        let result:number[] = [];
+        for (let i:number = 0; i< num; i= i + 1) {
+            result.push(i);
+        }
+        return result;
+    }
 }

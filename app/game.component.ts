@@ -4,6 +4,7 @@ import {WordsService} from "./words.service";
 @Component ({
     selector: 'game',
     template: `
+<span>Spiel Nr: {{numberOfGame + 1}}</span>
     <div class="buttonRow">
         <button *ngFor="let btn of btns; let j=index" (click)="playGame(j)">{{j+1}}</button>
     </div>
@@ -22,7 +23,6 @@ import {WordsService} from "./words.service";
  >
 
 </code-card>
-<div>Spiel Nr: {{numberOfGame + 1}}</div>
 </div>
     <div class="wrapper-map">
     <code-card *ngFor="let item of list; let i=index"
@@ -35,23 +35,24 @@ import {WordsService} from "./words.service";
 </div>
 `,
     styles: [`
-:host {
-font-size: 32px;
-font-weight: 900;
-}
+
 .wrapper-cards {
+font-size: 28px;
+font-weight: 600;
     margin: 0 auto;
- width: 800px;
- height: 400px;
- border: 1px solid white;
+ width: 820px;
+ height: 450px;
+ border: 1px solid transparent;
 }
 
 .wrapper-map {
+font-size: 2px;
+font-weight: 100;
 margin: 0 auto;
 margin-top: 90px;
- width: 100px;
- height: 100px;
- border: 1px solid white;
+ width: 150px;
+ height: 110px;
+ border: 1px solid transparent;
 }
 
 .counter {
@@ -61,12 +62,16 @@ margin-top: 90px;
  padding: 10px;
 }
 .group-red {
+font-size: 30px;
+font-weight: 900;
 position: absolute;
 top:40px;
 left: 10px;
 color: red;
 }
 .group-blue {
+font-size: 30px;
+font-weight: 900;
 position: absolute;
 top:40px;
 right: 10px;
@@ -76,11 +81,14 @@ color: blue;
 background: black;
 }
 .buttonRow {
-margin-top: 120px;
+display: inline-block;
+margin-top: 10px;
 }
 .buttonRow button {
- padding: 12px 8px;
+font-size: 19px;
+ padding: 4px 2px;
  margin-right: 10px;
+ margin-bottom: 15px;
 }
 `],
     providers: [WordsService],
@@ -102,12 +110,14 @@ export class GameComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        let anzBtns:number;
         this.colorList = this.getRandomList();
         this.pointsBlue = 0;
         this.pointsRed = 0;
         this.worsdservice.getWords(this.numberOfGame).then(list => this.list = list );
-        // getHeroesSlowly().then(heroes => this.heroes = heroes);
+        this.worsdservice.getNumberOfGames().then(n => this.btns = n);
     }
+
     onSendColorNr(colorNr:number) {
         switch (colorNr) {
             case 0:
@@ -121,18 +131,6 @@ export class GameComponent implements OnInit {
         }
     }
 
-    getWords():string[] {
-                return [
-                    'Auge',
-                    'Brille', 'Abfalleimer',
-                    'Not', 'gelb', 'Husten', 'Bonbon', 'Amerika',
-                    'Apfel', 'Süssigkeit', 'Elbe', 'Hamburg',
-                    'Konzert', 'Lang Lang', 'Gold', 'Stoff',
-                    'Tatort', 'Getränk', 'Katze', 'Wald',
-                    'Rucksack', 'Laptop', 'Kreide', 'Bluse',
-                    'Rohrstock'
-                ];
-    }
     getRandomList():number[] {
         let baseAr =  [
             0,0,0,0,0,0,0,0,0,
@@ -152,5 +150,6 @@ export class GameComponent implements OnInit {
         return resultLi;
 
     }
+
 
 }

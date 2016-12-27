@@ -11,8 +11,8 @@ import {Component, Input, Output, EventEmitter} from "@angular/core";
     'grey': showCardColor && myColorNr==2,
     'black': showCardColor && myColorNr==3}"
 >
-<span>{{name}}</span>
-<span class="turn">{{name}}</span></div>
+<span class="name">{{name}}</span>
+<span class="name turn">{{name}}</span></div>
 
 <div class="map" *ngIf="is_map"
 [ngClass]="{'red': myColorNr==0, 'blue': myColorNr==1, 'grey': myColorNr==2, 'black': myColorNr==3}"
@@ -21,30 +21,40 @@ import {Component, Input, Output, EventEmitter} from "@angular/core";
 `,
     styles: [`
 :host {
-font-size: 20px;
-font-weight: 900;
 }
 .card {
+border-radius: 4px;
+background: white;
+font-size: 19px;
+font-weight: 900;
  display: inline-block;
  position: relative;
- width: 144px;
- height: 60px;
- margin: 0 10px 20px 0;
+ 
+ width: 150px;
+ height: 80px;
+ 
+ margin: 0 4px 4px 0;
  text-align: center;
  border: 1px solid grey;
 }
 .map {
+border-radius: 2px;
+font-size: 2px;
  display: inline-block;
- width: 12px;
- height: 12px;
- margin: 1px;
+ width: 20px;
+ height: 14px;
+ margin: 0 6px 3px 0;
  border: 1px solid grey;
+}
+.name {
+position: relative;
+top: 10px;
 }
 .turn {
 position: absolute;
 transform: rotate(180deg);
     -webkit-transform: rotate(180deg);
-top: 30px;
+top: 46px;
 left: 10px;
 width: 100%;
 color: grey;
