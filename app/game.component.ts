@@ -9,15 +9,31 @@ import {CodeCardComponent} from "./code-card.component";
         <button *ngFor="let btn of btns; let j=index" (click)="playGame(j)">{{j+1}}</button>
         <button style="margin-left: 5px" (click)="isButtonbarOpen=false">x</button>
     </div>
+    
+    <div *ngIf="isQrbarOpen" class="qrRow fixed clear">
+        <div (click)="isQrbarOpen=false">
+            <img [src]="getQR('red')" alt="">
+            <img [src]="getQR('blue')" class="right" alt="">
+        </div>
+    </div>
 <div class="wrapper">
 <div class="counter">
 <div>
     <button (click)="changeGameNr(-1)">-</button>
     <span class="gameNr" (click)="isButtonbarOpen = true">Spiel Nr: {{numberOfGame + 1}}</span>
     <button (click)="changeGameNr(1)">+</button>
+    <button (click)="isQrbarOpen=!isQrbarOpen" class="distLeft">QR-Codes</button>
 </div>
-<div class="group-red" [ngClass]="{'backgr': pointsRed>=9}">{{pointsRed}}/9</div>
-<div class="group-blue" [ngClass]="{'backgr': pointsBlue>=9}">{{pointsBlue}}/9</div>
+<div class="group-red" 
+    [ngClass]="{'backgr': pointsRed >= pointsLimit('red'),
+    'startBorder':this.startPlayerNr == 0}">
+{{pointsRed}}/{{pointsLimit('red')}}
+</div>
+<div class="group-blue"
+    [ngClass]="{'backgr': pointsBlue >= pointsLimit('blue'),
+    'startBorder':this.startPlayerNr == 1}">
+{{pointsBlue}}/{{pointsLimit('blue')}}
+</div>
 
 </div>
 <div class="wrapper-cards">
@@ -49,6 +65,23 @@ import {CodeCardComponent} from "./code-card.component";
 .fixed {
 position: fixed;
 }
+.clear {
+clear: both;
+}
+.right {
+float: right;
+}
+.left {
+float: left;
+}
+.distLeft {
+margin-left: 50px;
+}
+.qrRow {
+top: 50px;
+width: 100%;
+z-index: 250;
+}
 .gameNr {
 margin:4px;
 }
@@ -69,6 +102,10 @@ margin-top: 90px;
  width: 150px;
  height: 110px;
  border: 1px solid transparent;
+}
+
+.startBorder {
+    border-bottom: 8px solid white;
 }
 
 .counter {
@@ -103,7 +140,7 @@ margin-top: 25px;
 background: white;
 border: 2px solid gray;
 padding: 20px;
-z-index: 200;
+z-index: 300;
 }
 .buttonRow button {
 font-size: 20px;
@@ -124,6 +161,8 @@ export class GameComponent implements OnInit {
     duplicates:string[];
     numberOfGame:number = 0;
     isButtonbarOpen:boolean;
+    isQrbarOpen:boolean; //isQrbarOpen" class="qrRow fixed2
+    startPlayerNr:number = 0;
 
     @ViewChildren(CodeCardComponent) codeCardCompList : QueryList<CodeCardComponent>;
 
@@ -131,6 +170,7 @@ export class GameComponent implements OnInit {
     constructor(private worsdservice:WordsService ) {
 
     }
+
     playGame(nr:number) {
         this.numberOfGame = nr;
         this.ngOnInit();
@@ -145,18 +185,69 @@ export class GameComponent implements OnInit {
         }
 
     }
+
     ngOnInit(): void {
+        this.changeStartPlayer();
         let anzBtns:number;
         this.isButtonbarOpen = false;
-        this.colorList = this.getRandomList();
+        this.colorList = this.getRandomList(this.startPlayerNr);
         this.pointsBlue = 0;
         this.pointsRed = 0;
         this.worsdservice.getWords(this.numberOfGame).then(list => this.list = list );
         this.worsdservice.getNumberOfGames().then(n => this.btns = n);
 
         this.worsdservice.findDuplicates().then(n => this.duplicates = n);
+    }
 
-        console.log("Duplicate: " + this.duplicates);
+    pointsLimit (col:string):number {
+        if (col === 'red') {
+            return 8 + (this.startPlayerNr == 0 ? 1 : 0);
+        } else {
+            return 8 + (this.startPlayerNr == 1 ? 1 : 0);
+        }
+    }
+
+    getQR (col:string):string {
+        //let color:string = col=='red'? 'ff4540':'1e90ff';
+        let color:string = col=='red'? 'f00':'00f';
+        let api:string = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&color='+
+            color +'&data=';
+        let wordsRed = this.getwords('red','\n') +
+            '\nNICHT:\n(' +
+            this.getwords('black','','**') + ', ' +
+            this.getwords('blue',', ') + '\n' +
+            this.getwords('grey',', ') +')';
+        let wordsBlue =  this.getwords('blue','\n') +
+            '\nNICHT:\n(' +
+            this.getwords('black','','**') + ', ' +
+            this.getwords('red',', ') + '\n' +
+            this.getwords('grey',', ') +')';
+        if (col === 'red') {
+            return api + encodeURI(wordsRed);
+        } else {
+            return api + encodeURI(wordsBlue);
+        }
+    }
+
+    private getwords(col: string, delimitter: string, marked:string = ''): string {
+        let result:string = marked;
+        let colNr:number = col ==='red'? 0:1;
+        if (col ==='black') { colNr = 3;}
+        if (col ==='grey') { colNr = 2;}
+
+        for (let i:number=0; i< this.list.length; i=i+1) {
+            if (this.colorList[i]===colNr) {
+                result += this.list[i] + delimitter;
+            }
+        }
+        return result + marked;
+    }
+
+    changeStartPlayer() {
+        this.startPlayerNr +=1;
+        if (this.startPlayerNr > 1) {
+            this.startPlayerNr = 0;
+        }
     }
 
     onSendColorNr(id:number) {
@@ -184,13 +275,20 @@ export class GameComponent implements OnInit {
             });
     }
 
-    getRandomList():number[] {
+    /**
+     *
+     * @param startPlayerNr:    0: red,  1: blue;
+     * @returns {number[]}
+     */
+    getRandomList(startPlayerNr:number):number[] {
         let baseAr =  [
-            0,0,0,0,0,0,0,0,0,
-            1,1,1,1,1,1,1,1,1,
-            2,2,2,2,2,2,
+            0,0,0,0,0,0,0,0,
+            1,1,1,1,1,1,1,1,
+            2,2,2,2,2,2,2,
             3
         ];
+        baseAr.push(startPlayerNr);
+
         let resultLi:number[] = [];
         let z = baseAr.length;
         while (baseAr.length > 0) {
