@@ -5,7 +5,12 @@ import {CodeCardComponent} from "./code-card.component";
 @Component ({
     selector: 'game',
     template: `
+<ng-content select="h1"></ng-content>
+<ng-content select="[head2]"></ng-content>
+<ng-content select=".head3"></ng-content>
+<ng-content select=".head4"></ng-content>
     <div *ngIf="isButtonbarOpen" class="buttonRow fixed">
+        <button (click)="playRandomGame()">**</button>
         <button *ngFor="let btn of btns; let j=index" (click)="playGame(j)">{{j+1}}</button>
         <button style="margin-left: 5px" (click)="isButtonbarOpen=false">x</button>
     </div>
@@ -19,17 +24,29 @@ import {CodeCardComponent} from "./code-card.component";
 <div class="wrapper">
 <div class="counter">
 <div>
-    <button (click)="changeGameNr(-1)">-</button>
-    <span class="gameNr" (click)="isButtonbarOpen = true">Spiel Nr: {{numberOfGame + 1}}</span>
-    <button (click)="changeGameNr(1)">+</button>
+    <button (click)="changeGameNr(-1)" [disabled]="hasRandomGameNrMode">-</button>
+    <span class="gameNr" (click)="isButtonbarOpen = true">
+    <span *ngIf="hasRandomGameNrMode">Zufallsspiel</span>
+    <span *ngIf="!hasRandomGameNrMode">Spiel Nr: {{numberOfGame + 1}}</span>
+    </span>
+    <button (click)="changeGameNr(1)" [disabled]="hasRandomGameNrMode">+</button>
     <button (click)="isQrbarOpen=!isQrbarOpen" class="distLeft">QR-Codes</button>
+    <button (click)="isColorMapVisible=!isColorMapVisible" class="distLeft">
+        <span *ngIf="!isColorMapVisible">zeige </span>
+        <span *ngIf="isColorMapVisible">verstecke </span>
+        Zuordnungsfeld
+    </button>
+    <button (click)="changeGameNr(0)" class="distLeft">Neue Zuordnung</button>
+    <span class="distLeft light"> - ({{numberOfWords}} Begriffe)</span>
 </div>
 <div class="group-red" 
+(click)="showExtraInfo=0"
     [ngClass]="{'backgr': pointsRed >= pointsLimit('red'),
     'startBorder':this.startPlayerNr == 0}">
 {{pointsRed}}/{{pointsLimit('red')}}
 </div>
 <div class="group-blue"
+(click)="showExtraInfo=1"
     [ngClass]="{'backgr': pointsBlue >= pointsLimit('blue'),
     'startBorder':this.startPlayerNr == 1}">
 {{pointsBlue}}/{{pointsLimit('blue')}}
@@ -42,14 +59,15 @@ import {CodeCardComponent} from "./code-card.component";
 [myColorNr]="colorList[i]"
 [is_map]="false"
 [myId]="i"
+[extraInfo]="showExtraInfo"
 (sendColorNr)="onSendColorNr($event)"
  >
-
 </code-card>
 </div>
     <div class="wrapper-map">
         <code-card *ngFor="let item of list; let i=index"
         [myColorNr]="colorList[i]"
+        [ngClass]="{'transp': !isColorMapVisible}"
         [is_map]="true"
         [myId]="i"
         >
@@ -58,7 +76,7 @@ import {CodeCardComponent} from "./code-card.component";
     </div>
 
 </div>
-<div>{{duplicates}}</div>
+<div>{{duplicates}} <a href="https://www.google.de/search?as_st=y&tbm=isch&hl=de&as_q=wimmelbilder&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=images&tbs=isz:lt,islt:xga" target="_blank">Wimmelbilder</a></div>
 `,
     styles: [`
 
@@ -73,6 +91,12 @@ float: right;
 }
 .left {
 float: left;
+}
+.transp {
+opacity: 0;
+}
+.light {
+opacity: 0.3;
 }
 .distLeft {
 margin-left: 50px;
@@ -145,7 +169,7 @@ z-index: 300;
 .buttonRow button {
 font-size: 20px;
  padding: 4px 2px;
- width: 35px;
+ width: 40px;
  margin-right: 16px;
  margin-bottom: 15px;
 }
@@ -159,20 +183,29 @@ export class GameComponent implements OnInit {
     btns:number[] = [0,1,2];
     list:string[];
     duplicates:string[];
+    numberOfWords:number;
+    clickList:boolean[];
     numberOfGame:number = 0;
     isButtonbarOpen:boolean;
-    isQrbarOpen:boolean; //isQrbarOpen" class="qrRow fixed2
+    hasRandomGameNrMode:boolean;
+    showExtraInfo:number = -1;
+//    isQrbarOpen:boolean;
     startPlayerNr:number = 0;
 
     @ViewChildren(CodeCardComponent) codeCardCompList : QueryList<CodeCardComponent>;
 
 
     constructor(private worsdservice:WordsService ) {
-
     }
 
     playGame(nr:number) {
+        this.hasRandomGameNrMode = false;
         this.numberOfGame = nr;
+        this.ngOnInit();
+        this.isButtonbarOpen = false;
+    }
+    playRandomGame() {
+        this.hasRandomGameNrMode = true;
         this.ngOnInit();
         this.isButtonbarOpen = false;
     }
@@ -184,19 +217,28 @@ export class GameComponent implements OnInit {
             this.ngOnInit();
         }
 
+        if (addMe === 0) {
+            // change again:
+            this.ngOnInit();
+        }
     }
 
     ngOnInit(): void {
+        this.clickList = this.getFalseList(25);
         this.changeStartPlayer();
-        let anzBtns:number;
+        this.showExtraInfo = -1;
         this.isButtonbarOpen = false;
         this.colorList = this.getRandomList(this.startPlayerNr);
         this.pointsBlue = 0;
         this.pointsRed = 0;
-        this.worsdservice.getWords(this.numberOfGame).then(list => this.list = list );
+        this.worsdservice.getWords(this.numberOfGame, this.hasRandomGameNrMode).then(list => this.list = list );
         this.worsdservice.getNumberOfGames().then(n => this.btns = n);
 
         this.worsdservice.findDuplicates().then(n => this.duplicates = n);
+
+
+
+        this.worsdservice.getNumberOfwords().then(n => this.numberOfWords = n);
     }
 
     pointsLimit (col:string):number {
@@ -207,25 +249,32 @@ export class GameComponent implements OnInit {
         }
     }
 
+    getFalseList(cnt:number) : boolean[] {
+        let results = [];
+        for (let i = 0; i < cnt; i++) {
+                results.push(false);
+        }
+        return results;
+    }
     getQR (col:string):string {
         //let color:string = col=='red'? 'ff4540':'1e90ff';
         let color:string = col=='red'? 'f00':'00f';
         let api:string = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&color='+
-            color +'&data=';
+            color +'&margin=10&data=';
         let wordsRed = this.getwords('red','\n') +
-            '\nNICHT:\n(' +
+            '\n\nNICHT: (' +
             this.getwords('black','','**') + ', ' +
-            this.getwords('blue',', ') + '\n' +
+            this.getwords('blue',', ') + ' - \n' +
             this.getwords('grey',', ') +')';
         let wordsBlue =  this.getwords('blue','\n') +
-            '\nNICHT:\n(' +
+            '\n\nNICHT: (' +
             this.getwords('black','','**') + ', ' +
-            this.getwords('red',', ') + '\n' +
+            this.getwords('red',', ') + ' - \n' +
             this.getwords('grey',', ') +')';
         if (col === 'red') {
-            return api + encodeURI(wordsRed);
+            return api + encodeURIComponent(this.replaceUmlaute(wordsRed));
         } else {
-            return api + encodeURI(wordsBlue);
+            return api + encodeURIComponent(this.replaceUmlaute(wordsBlue));
         }
     }
 
@@ -236,11 +285,19 @@ export class GameComponent implements OnInit {
         if (col ==='grey') { colNr = 2;}
 
         for (let i:number=0; i< this.list.length; i=i+1) {
-            if (this.colorList[i]===colNr) {
+            //let codeCard: CodeCardComponent = this.codeCardCompList[i];
+            if (this.colorList[i]===colNr && !this.clickList[i]) {
                 result += this.list[i] + delimitter;
             }
         }
+        result = result.slice(0,result.length - delimitter.length);
         return result + marked;
+    }
+
+    replaceUmlaute(str:string):string {
+       str = str.replace('ä','ae').replace('ö','oe').replace('ü','ue').
+        replace('Ä','Ae').replace('Ö','Oe').replace('Ü','Ue').replace('ß','ss');
+        return str;
     }
 
     changeStartPlayer() {
@@ -251,6 +308,7 @@ export class GameComponent implements OnInit {
     }
 
     onSendColorNr(id:number) {
+        this.clickList[id] = true; // TODO Austausch clicklist gegen einfachen Zugriff component
         let colorNr:number = this.colorList[id];
 
         switch (colorNr) {
@@ -266,9 +324,9 @@ export class GameComponent implements OnInit {
 
         this.disableMapField(id);
     }
+
     disableMapField(id:number) {
         this.codeCardCompList.forEach(component => {
-            console.log(id, component.myId);
             if (component.myId == id) {
                 component.is_mapOpen = true;
             }
@@ -290,7 +348,6 @@ export class GameComponent implements OnInit {
         baseAr.push(startPlayerNr);
 
         let resultLi:number[] = [];
-        let z = baseAr.length;
         while (baseAr.length > 0) {
             let zufIndex = Math.floor(Math.random() * (baseAr.length) );
             resultLi.push(baseAr[zufIndex]);

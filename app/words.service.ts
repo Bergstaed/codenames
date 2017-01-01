@@ -4,13 +4,30 @@ import {Injectable} from "@angular/core";
 @Injectable()
 export class WordsService {
 
-    getWords(nr:number): Promise<string[]> {
+    getWords(nr:number,randomWords:boolean): Promise<string[]> {
         let arrayAll:string[] = this.getAllNames().split(",");
-        this.wordsArray = [];
-        for (let i:number = nr*25; i< nr*25 + 25; i= i + 1) {
-            this.wordsArray.push(arrayAll[i]);
+        var wordsArray:string[] = [];
+        if (randomWords) {
+            let anz = Math.floor(arrayAll.length/25);
+            anz--; // wg schwierigen Begriffen am Ende
+            var randLi = this.buildArrayOfIncreasingNumbers(anz*25);
+
+            let zufLi = [];
+
+            for (let i:number = 0; i< 25; i= i + 1) {
+                let zufIndex = Math.floor(Math.random() * (randLi.length) );
+                zufLi.push(randLi[zufIndex]);
+                wordsArray.push(arrayAll[randLi[zufIndex]]);
+                randLi.splice(zufIndex,1);
+            }
+            console.log(zufLi);
+        } else {
+            for (let i:number = nr*25; i< nr*25 + 25; i= i + 1) {
+                wordsArray.push(arrayAll[i]);
+            }
         }
-        return Promise.resolve(this.wordsArray);
+
+        return Promise.resolve(wordsArray);
     }
 
     getNumberOfGames(): Promise<number[]> {
@@ -20,10 +37,15 @@ export class WordsService {
         return Promise.resolve(result);
     }
 
-    getWordsSlowly(nr:number): Promise<string[]> {
+    getNumberOfwords():Promise<number> {
+        let arrayAll:string[] = this.getAllNames().split(",");
+        return Promise.resolve(arrayAll.length);
+    }
+
+    getWordsSlowly(nr:number,randomWords:boolean): Promise<string[]> {
         return new Promise<string[]>(resolve =>
             setTimeout(resolve, 1000)) // delay 1 second(s)
-            .then(() => this.getWords(nr));
+            .then(() => this.getWords(nr,randomWords));
     }
 
     findDuplicates():Promise<string[]> {
@@ -43,24 +65,52 @@ export class WordsService {
         return Promise.resolve(results);
     }
 
-    wordsArray: string[];
+//    wordsArray: string[];
 
     getAllNames() :string {
-        // Brille,Hilfe,Korb,Laptop,Musik,Orgel,Stuhl,Uhr,Wald
+
+        //
+
+        /*
+        "nochInArbeit1,nochInArbeit2,nochInArbeit3,nochInArbeit4,nochInArbeit5," +
+        "nochInArbeit6,nochInArbeit7,nochInArbeit8,nochInArbeit9,nochInArbeit10," +
+        "nochInArbeit11,nochInArbeit12,nochInArbeit13,nochInArbeit14,nochInArbeit15," +
+        "nochInArbeit16,nochInArbeit17,nochInArbeit18,nochInArbeit19,nochInArbeit20," +
+        "nochInArbeit21,nochInArbeit22,nochInArbeit23,nochInArbeit24,nochInArbeit25," +
+        */
         return "Birne,Baum,Hannah,Schauspieler," +
-            "Johannes,YouTube,Beruf,Ente,Kaninchen,König,Dach,Durchsage," +
-            "Geschichte,Musik,Uhr,Hemd,Gras,Lehne,Bushaltestelle,Stuhl,Spielplatz," +
-            "Fisch,Essen,Handy,blau,Auto,Prozent,Wasser,Boden,Keim,Brille," +
+            "Johannes,YouTube,Beruf,Ente,Kaninchen,König,Dach,Durchsage,Geschichte," +
+            "Musik,Uhr,Hemd,Gras,Lehne,Bushaltestelle,Stuhl,Spielplatz," +
+            "Fisch,Essen,Handy,blau," +
+
+            "Auto,Prozent,Wasser,Boden,Keim,Brille," +
             "Fuchs,Spieß,Spiel,Spaß,Blatt,Zigarette,Kind,Ball,Fehler,Korb," +
             "Buch,Spannung,Chemie,Larissa,Haare,Perücke,Eis,Nachname,Koffer," +
+
+            "Feier,Rote Beete,rosa,Hose,Keyboard,Zeitschrift,Raclette,Stoppelmarkt,Noten," +
+            "Hänsel&Gretel,Stift,Hausschuhe,Schlafsack,Rasen,Fußball,Fahrkarte,Schnuller," +
+            "Bettwäsche,Tatort,Schlüssel,Schere,Cello,Mann,Heizung,Wurst," +
+
+            "Flugzeug,Stroh,Urlaub,Palme,Aufkleber,Pfeil,Kommissar,Streifen,Stein," +
+            "Braut,Gefahr,zerbrechlich,Käfig,Zirkus,Autopanne,Werkstatt,Garantie," +
+            "Glasscheibe,Angeber,Computer,Sohle,Rost,Schokolade,Medizin,Marmelade," +
+
             "Lampe,Messer,Mord,Note,Notiz,Schimmel,Schlange,Schaf,Luftballon," +
             "Nadel,Trommel,Takt,Haus,Australien,Kauf,schnell,nah,Zimmer,Rakete," +
             "Fenster,Rauch,Team,Rinde,Tanne,Weihnachten," +
 
-            "meridional,Agglutination,Folikel,Hyperglykämie,partizipativ,diskursiv," +
-            "dediziert,Prekariat,usurpieren,Nimbus,matrimonial,Nepotismus,einfach,intrinsisch," +
-            "Rekuperation,Ressentiment,unisono,Misanthrop,paralysieren,pekuniär," +
-            "soigniert,gustatorisch,Konvolut,Zampano,Euphemismus," +
+            "Schweiz,Fernglas,Rasenmäher,Schiedsrichter,Maulwurf,Kuh,Gewinner,Fahne," +
+            "Nutella,Autoscooter,Krawatte,Stinktier,gestreift,Wolkenkratzer," +
+            "Sauna,Tee,Himmel,Liegestuhl,Strandkorb,Afrika," +
+            "Golfball,Minigolf,Biene Maja,Punker,Zahnlücke," +
+
+            "Zwerg,Rathaus,Zollstock,Popel,Kaffee,Gerüst,Gehirn,Dachziegel,Pirat,SPD,Ballon," +
+            "Plakat,Steckdose,3D Drucker,Scheebesen,Entzündung,Gurke,Butter,Turnschuh,Maja," +
+            "Torte,Donald Duck,Beamer,Milch,grün," +
+
+            "Reklame,Müllfahrer,Locher,Post,Pizza,Poster,Zebra,Zucchini,Hamster,Schornstein," +
+            "Superman,Papier,Maus,Leiter,Fitnessstudio,Restaurant,Gulli,Magnet,Liege,Telefonzelle," +
+            "Ast,Käfer,Putzeimer,FKK,Portemonai," +
 
             "Graffiti,Design,Tour,rot," +
             "Gans,Liebe,Welt,Reise,Riese,Nase,Nagel,Finger,Strom,Krug,Saft,Briefe," +
@@ -78,7 +128,7 @@ export class WordsService {
             "Pause,Herd,Schnur,Hunger,Genick,Normandie,Hamburg,Pupille,Galerie,Zahn,Mathe," +
             "Wagen,Rad,Sport,Yoga,Matte,Sushi,Verbot,Preis,President,Staat,Titanic," +
             "Ruine,Ordner,Ärmel,Verlauf,Käse,lila,Parfum,Prag,Bus,Decke,Kleber,Video," +
-            "Leuchtturm,Serie,Eimer,Muschel,Zucker,Zucht,Zeiger,Füller,Opa,Beutel,Tier," +
+            "Leuchtturm,Serie,Eimer,Muschel,Zucker,Zucht,Zeiger,Füller,Vegetarier,Beutel,Tier," +
             "Dart,dunkel,Orgel,Würfel,Rahmen,Clown,Taste,April,Tag,Zeichen,Kissenbezug," +
             "Umzug,Henkel,Regal,Insel,Vulkan,Hocker,Figur,Stern,Mond,Flöte,Schildkröte,Wachs,Sturm," +
             "Auge,4 gewinnt,Abfalleimer,Not,gelb,Husten,Bonbon,Amerika,Apfel,Süssigkeit,Elbe," +
@@ -96,10 +146,55 @@ export class WordsService {
             "Band,Schwein,Knäckebrot,Müsli,Mikrofon,Anhalter,Reifen,Panne,Halbmond,Gespenst,Waage,Trampolin," +
             "Nebel,Rosenkohl,Brunnen,Kastanie,Köln,DDR,Fanta,Ernte,Vater,Dick & Doof," +
             "Kreide,Bluse,Rohrstock,Trauer,Teppich,Besteck,Kopierer,Scheiße,Angel,Parkhaus,Fernbedienung," +
-            "Sommer,Hai,Putzfrau,Schokokuss,Gardinen,Lautsprecher,Frage,Ass,Bumerang,Schwimmbad,Kran," +
-            "Antwort," +
+            "Sommer," +
+
+            "Hai,Putzfrau,Schokokuss,Gardinen,Lautsprecher,Frage,Schatten,Bumerang,Schwimmbad,Kran,Antwort," +
+            "Bobbycar,Motorsäge,Schuhe,Stiefel,Sessel,Mülleimer,Mobilée,Teddybär,Treppe,Zelt,Laterne," +
+            "schwanger,Kuchen,Bürgermeister," +
+
+            "Sandalen,Rolltreppe,Schneemann,Stadion,Sandkorn,Lupe,Mikroskop,Jäger,Wildschwein,Obelix," +
+            "Paternoster,Kirche,Paris,London,Niedenstein,Schlumpf,Sieb,Schublade," +
+            "Schleife,Zebrastreifen,Schaufel,Stop,Schlittschuh,Burg,Windrad," +
+
+            "Raabe,Schwan,Sonnenbrille,Einhorn,Osterhase,Sandburg,Ohr,Friseur,Schuhcreme,Stube," +
+            "Italien,Seerose,Museum,Gepäckträger,Schale,Engel,Bauernhof,Vase,Kaktus,Bücherboard,Mon Cherie," +
+            "Feuerzeug,Uhrzeiger,Lampion,Ton," +
+
+            "Herz,Karo,Kopf,Leumund,Skat,Ikea,Knochen,Frühling,Seifenblase,Barok,Hitler,Sesamstraße," +
+            "Mondschein,Sternen,Glanz,Puzzle,Bücherwurm,Kammerjäger," +
+            "Präsident,Moskau,Attentäter,Geburt,Truhe,David Bowie,Oldtimer," +
+
+            "Schach,Student,blond,Schaufenster,Benzin,Dollar,Thermomix,Schimpanse,Werbung," +
+            "Lippenstift,Silvester,Glocke,Palette,Gleise,Hexe,Garten,Minion,Pfanne," +
+            "Robin Hood,Pfütze,Pappe,Kiesel,Schnürsenkel,Tannenbaum,Tankstelle," +
+
+            "Drohne,Wolke,Jupiter,Bombe,Ampel,Klasse,Tiefkühltruhe,Cornflakes,Kokain," +
+            "Felge,Geschwindigkeit,Schule,Edeka,Böller,Hölle,Mars,Grashüpfer," +
+            "Martini,Porsche,Brücke,Brötchen,Nudeln,Schienen,Stickstoff,Tau," +
+
+            "Fettpolster,England,Ei,Hirsch,Wahrheit,Zielscheibe,Hecke,Busch,Trommelfell,Adidas," +
+            "Feuerlöscher,Chips,Würmchen,Jägermeister,Satelit,Fernseher,Glühwürmchen," +
+            "Heuhaufen,Neonröhre,Lehrer,Mutter,Ring,Frisbee,Bohrer,Webcam," +
+
+            "Opa,Oper,Haargel,Hagel,Hans,Hanf,Amazon,Amazonas,Bett,Beet," +
+            "Aas,Ass,satt,Saat,Volt,Watt,Ohm,Sauerstoff,Diamant,Kritiker,Safari,Chrome,Quelle,Pfad,Windmühle," +
+
+            "Barbar,Zombie,Pony,Huhn,Moos,Sonnenuntergang,Bach,Pendel,Weizen,Hafer," +
+            "Pferd,Bremse,Reh,Kreuzfahrt,Notausgang,Beton,Dübel,Silo,Imbusschlüssel,Bohrmaschine,Walzer," +
+            "Flohwalzer,Floh,Werkbank,Schmalz," +
+
+            "120,17,36,1,-5,-19,33,50,49,42,11,10,32,100,99,2,5,40,unendlich,444," +
+            "-300,16,0,56,39," +
+
+            "meridional,Agglutination,Folikel,Hyperglykämie,partizipativ,diskursiv," +
+            "dediziert,Prekariat,usurpieren,Nimbus,matrimonial,Nepotismus,einfach,intrinsisch," +
+            "Rekuperation,Ressentiment,unisono,Misanthrop,paralysieren,pekuniär," +
+            "soigniert,gustatorisch,Konvolut,Zampano,Euphemismus," +
+
+            "Augenbrauen,Sekt,Marsmännchen,Aldi,Mantel,Bikini,AFD,Loriot,ZDF," +
             "Ende";
 
+        //
     }
 
 
